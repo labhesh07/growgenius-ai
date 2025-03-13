@@ -31,7 +31,7 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = async (): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
@@ -45,7 +45,6 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
         duration: 3000,
       });
       
-      return data;
     } catch (err) {
       const errorMessage = 'Failed to get recommendations. Please try again.';
       setError(errorMessage);
