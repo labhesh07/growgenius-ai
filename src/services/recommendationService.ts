@@ -1,4 +1,3 @@
-
 // This is a simplified version of what would be a machine learning model in production
 // For demonstration purposes, we're using a rule-based approach
 
@@ -146,39 +145,55 @@ const CROP_DATA: Record<string, {
   }
 };
 
-// Calculate the suitability score (0-100) for a given crop based on soil data
-const calculateSuitabilityScore = (crop: string, soilData: SoilData): number => {
-  const ideal = CROP_DATA[crop].idealConditions;
+// Memoize calculation results for better performance
+const calculateSuitabilityScoreWithCache = (() => {
+  const cache = new Map();
   
-  // Calculate difference from ideal conditions
-  const nitrogenDiff = Math.abs((soilData.nitrogen - (ideal.nitrogen || 0)) / (ideal.nitrogen || 1));
-  const phosphorusDiff = Math.abs((soilData.phosphorus - (ideal.phosphorus || 0)) / (ideal.phosphorus || 1));
-  const potassiumDiff = Math.abs((soilData.potassium - (ideal.potassium || 0)) / (ideal.potassium || 1));
-  const temperatureDiff = Math.abs((soilData.temperature - (ideal.temperature || 0)) / (ideal.temperature || 1));
-  const humidityDiff = Math.abs((soilData.humidity - (ideal.humidity || 0)) / (ideal.humidity || 1));
-  const phDiff = Math.abs((soilData.ph - (ideal.ph || 0)) / (ideal.ph || 1));
-  const rainfallDiff = Math.abs((soilData.rainfall - (ideal.rainfall || 0)) / (ideal.rainfall || 1));
-  
-  // Calculate total difference (weighted)
-  const totalDiff = (
-    nitrogenDiff * 0.15 + 
-    phosphorusDiff * 0.15 + 
-    potassiumDiff * 0.15 + 
-    temperatureDiff * 0.15 + 
-    humidityDiff * 0.15 + 
-    phDiff * 0.15 + 
-    rainfallDiff * 0.1
-  );
-  
-  // Convert to a score (0-100)
-  return Math.max(0, Math.min(100, 100 - (totalDiff * 100)));
-};
+  return (crop: string, soilData: SoilData): number => {
+    // Create a cache key using crop and stringified soil data
+    const key = `${crop}-${JSON.stringify(soilData)}`;
+    
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    
+    const ideal = CROP_DATA[crop].idealConditions;
+    
+    // Calculate difference from ideal conditions
+    const nitrogenDiff = Math.abs((soilData.nitrogen - (ideal.nitrogen || 0)) / (ideal.nitrogen || 1));
+    const phosphorusDiff = Math.abs((soilData.phosphorus - (ideal.phosphorus || 0)) / (ideal.phosphorus || 1));
+    const potassiumDiff = Math.abs((soilData.potassium - (ideal.potassium || 0)) / (ideal.potassium || 1));
+    const temperatureDiff = Math.abs((soilData.temperature - (ideal.temperature || 0)) / (ideal.temperature || 1));
+    const humidityDiff = Math.abs((soilData.humidity - (ideal.humidity || 0)) / (ideal.humidity || 1));
+    const phDiff = Math.abs((soilData.ph - (ideal.ph || 0)) / (ideal.ph || 1));
+    const rainfallDiff = Math.abs((soilData.rainfall - (ideal.rainfall || 0)) / (ideal.rainfall || 1));
+    
+    // Calculate total difference (weighted)
+    const totalDiff = (
+      nitrogenDiff * 0.15 + 
+      phosphorusDiff * 0.15 + 
+      potassiumDiff * 0.15 + 
+      temperatureDiff * 0.15 + 
+      humidityDiff * 0.15 + 
+      phDiff * 0.15 + 
+      rainfallDiff * 0.1
+    );
+    
+    // Convert to a score (0-100)
+    const result = Math.max(0, Math.min(100, 100 - (totalDiff * 100)));
+    
+    // Store in cache for future use
+    cache.set(key, result);
+    
+    return result;
+  };
+})();
 
 export const getRecommendation = (soilData: SoilData): CropRecommendation[] => {
   // Calculate suitability scores for all crops
   const scores = CROPS.map(crop => ({
     crop,
-    suitabilityScore: calculateSuitabilityScore(crop, soilData),
+    suitabilityScore: calculateSuitabilityScoreWithCache(crop, soilData),
   }));
   
   // Sort by suitability score (descending)
@@ -195,11 +210,20 @@ export const getRecommendation = (soilData: SoilData): CropRecommendation[] => {
   }));
 };
 
+// Use a debouncing function for the async recommendation to prevent overloading
+let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
 export const getRecommendationAsync = async (soilData: SoilData): Promise<CropRecommendation[]> => {
-  // Simulate API call with delay
+  // Clear any existing timeout
+  if (timeoutId) {
+    clearTimeout(timeoutId);
+  }
+  
+  // Return a promise that resolves after the debounce period
   return new Promise((resolve) => {
-    setTimeout(() => {
+    timeoutId = setTimeout(() => {
       resolve(getRecommendation(soilData));
+      timeoutId = null;
     }, 1200);
   });
 };

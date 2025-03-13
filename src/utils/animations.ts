@@ -6,6 +6,7 @@ export const observeElements = () => {
     threshold: 0.1,
   };
 
+  // Use a single observer instance for better performance
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
@@ -15,13 +16,18 @@ export const observeElements = () => {
     });
   }, observerOptions);
 
+  // Cache the NodeList to avoid requerying the DOM
   const elements = document.querySelectorAll('.animate-enter');
-  elements.forEach((el, index) => {
-    // Use setAttribute instead of style.setProperty for better type safety
-    el.setAttribute('style', `--index: ${index}`);
-    observer.observe(el);
+  
+  // Use requestAnimationFrame to batch DOM operations
+  requestAnimationFrame(() => {
+    elements.forEach((el, index) => {
+      el.setAttribute('style', `--index: ${index}`);
+      observer.observe(el);
+    });
   });
 
+  // Return cleanup function
   return () => {
     elements.forEach((el) => {
       observer.unobserve(el);
@@ -29,6 +35,18 @@ export const observeElements = () => {
   };
 };
 
-export const getRandomDelay = (min = 0, max = 5) => {
-  return (Math.floor(Math.random() * (max - min + 1)) + min) * 100;
-};
+// Cache results with a simple memoization pattern
+export const getRandomDelay = (() => {
+  const cache = new Map();
+  
+  return (min = 0, max = 5) => {
+    const key = `${min}-${max}`;
+    
+    if (!cache.has(key)) {
+      cache.set(key, (Math.floor(Math.random() * (max - min + 1)) + min) * 100);
+    }
+    
+    return cache.get(key);
+  };
+})();
+
