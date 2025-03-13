@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useRecommendation } from '../context/RecommendationContext';
 import { observeElements } from '../utils/animations';
-import { Sprout, Chevron, ArrowLeft, Plant, Droplets, Thermometer, Cloud, BarChart3, Check } from 'lucide-react';
+import { Sprout, ChevronDown, ArrowLeft, Leaf, Droplets, Thermometer, Cloud, BarChart3, Check } from 'lucide-react';
 
 const ResultsCard = () => {
   const { recommendations, isLoading, resetRecommendations, soilData } = useRecommendation();
@@ -52,7 +52,7 @@ const ResultsCard = () => {
           <div className="lg:col-span-2">
             <div className="flex items-center mb-4">
               <div className="p-3 rounded-full bg-primary/10 mr-4">
-                <Plant className="w-8 h-8 text-primary" />
+                <Leaf className="w-8 h-8 text-primary" />
               </div>
               <div>
                 <h3 className="text-2xl font-medium capitalize mb-1">{topRecommendation.crop}</h3>
@@ -166,7 +166,7 @@ const ResultsCard = () => {
           >
             <div className="flex items-center mb-3">
               <div className="p-2 rounded-full bg-secondary mr-3">
-                <Plant className="w-5 h-5 text-secondary-foreground" />
+                <Leaf className="w-5 h-5 text-secondary-foreground" />
               </div>
               <div>
                 <h4 className="text-lg font-medium capitalize">{rec.crop}</h4>

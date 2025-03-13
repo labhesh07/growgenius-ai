@@ -17,7 +17,8 @@ export const observeElements = () => {
 
   const elements = document.querySelectorAll('.animate-enter');
   elements.forEach((el, index) => {
-    el.style.setProperty('--index', index.toString());
+    // Use setAttribute instead of style.setProperty for better type safety
+    el.setAttribute('style', `--index: ${index}`);
     observer.observe(el);
   });
 
