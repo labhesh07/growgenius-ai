@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { SoilData, CropRecommendation, getRecommendationAsync } from '../services/recommendationService';
+import { toast } from '@/components/ui/use-toast';
 
 interface RecommendationContextType {
   soilData: SoilData;
@@ -36,9 +37,29 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
       setError(null);
       const data = await getRecommendationAsync(soilData);
       setRecommendations(data);
+      
+      // Show success toast
+      toast({
+        title: "Analysis Complete",
+        description: `Recommended crop: ${data[0].crop}`,
+        duration: 3000,
+      });
+      
+      return data;
     } catch (err) {
-      setError('Failed to get recommendations. Please try again.');
+      const errorMessage = 'Failed to get recommendations. Please try again.';
+      setError(errorMessage);
       console.error('Error fetching recommendations:', err);
+      
+      // Show error toast
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+        duration: 3000,
+      });
+      
+      throw err;
     } finally {
       setIsLoading(false);
     }

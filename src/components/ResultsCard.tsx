@@ -1,14 +1,12 @@
-
 import React, { useEffect } from 'react';
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useRecommendation } from '../context/RecommendationContext';
 import { observeElements } from '../utils/animations';
-import { Sprout, ChevronDown, ArrowLeft, Leaf, Droplets, Thermometer, Cloud, BarChart3, Check } from 'lucide-react';
+import { Leaf, Droplets, Thermometer, Cloud, BarChart3, Check } from 'lucide-react';
 
 const ResultsCard = () => {
-  const { recommendations, isLoading, resetRecommendations, soilData } = useRecommendation();
+  const { recommendations, isLoading, soilData } = useRecommendation();
 
   useEffect(() => {
     const cleanup = observeElements();
@@ -23,17 +21,6 @@ const ResultsCard = () => {
 
   return (
     <div className="section-container">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={resetRecommendations}
-        className="mb-8 animate-enter flex items-center space-x-2"
-        data-direction="left"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Back to Form</span>
-      </Button>
-      
       <div className="text-center max-w-2xl mx-auto mb-12">
         <span className="inline-block py-1 px-3 mb-4 text-xs font-medium tracking-wider uppercase rounded-full bg-primary/10 text-primary animate-enter" data-direction="down">
           Analysis Complete
@@ -122,7 +109,7 @@ const ResultsCard = () => {
                     icon = <Cloud className="w-4 h-4" />;
                     break;
                   default:
-                    icon = <Sprout className="w-4 h-4" />;
+                    icon = <Leaf className="w-4 h-4" />;
                 }
                 
                 return (

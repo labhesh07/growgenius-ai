@@ -1,5 +1,5 @@
-// This is a simplified version of what would be a machine learning model in production
-// For demonstration purposes, we're using a rule-based approach
+// This file contains the integration with a crop recommendation ML API
+// The original mock data is kept as a fallback
 
 export interface SoilData {
   nitrogen: number;
@@ -20,6 +20,7 @@ export interface CropRecommendation {
   idealConditions: Partial<SoilData>;
 }
 
+// Keep the original CROPS and CROP_DATA for fallback
 const CROPS = [
   'rice', 'maize', 'chickpea', 'kidneybeans', 'pigeonpeas',
   'mothbeans', 'mungbean', 'blackgram', 'lentil', 'pomegranate',
@@ -189,6 +190,60 @@ const calculateSuitabilityScoreWithCache = (() => {
   };
 })();
 
+// External API integration
+const fetchExternalRecommendation = async (soilData: SoilData): Promise<CropRecommendation[] | null> => {
+  try {
+    // Using an example API endpoint - replace with your actual ML API
+    const response = await fetch('https://crop-recommendation-ml-api.onrender.com/predict', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nitrogen: soilData.nitrogen,
+        phosphorus: soilData.phosphorus,
+        potassium: soilData.potassium,
+        temperature: soilData.temperature,
+        humidity: soilData.humidity,
+        ph: soilData.ph,
+        rainfall: soilData.rainfall
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('API error:', await response.text());
+      return null;
+    }
+
+    const data = await response.json();
+    
+    // Map the external API response to our CropRecommendation format
+    const recommendations = data.predictions.map((prediction: any) => {
+      const cropName = prediction.crop.toLowerCase();
+      const cropInfo = CROP_DATA[cropName] || {
+        description: `A versatile crop suitable for your conditions.`,
+        idealConditions: {},
+        fertilizers: ['General purpose fertilizer']
+      };
+      
+      return {
+        crop: cropName,
+        confidence: prediction.confidence * 100,
+        suitabilityScore: prediction.suitability * 100,
+        fertilizers: cropInfo.fertilizers,
+        description: cropInfo.description,
+        idealConditions: cropInfo.idealConditions,
+      };
+    });
+    
+    return recommendations;
+  } catch (error) {
+    console.error('Error fetching from external API:', error);
+    return null;
+  }
+};
+
+// Original local calculation as fallback
 export const getRecommendation = (soilData: SoilData): CropRecommendation[] => {
   // Calculate suitability scores for all crops
   const scores = CROPS.map(crop => ({
@@ -221,8 +276,25 @@ export const getRecommendationAsync = async (soilData: SoilData): Promise<CropRe
   
   // Return a promise that resolves after the debounce period
   return new Promise((resolve) => {
-    timeoutId = setTimeout(() => {
-      resolve(getRecommendation(soilData));
+    timeoutId = setTimeout(async () => {
+      try {
+        // First try to get recommendations from the external API
+        const externalRecommendations = await fetchExternalRecommendation(soilData);
+        
+        if (externalRecommendations && externalRecommendations.length > 0) {
+          // Use external recommendations if available
+          resolve(externalRecommendations);
+        } else {
+          // Fall back to local recommendations if external API fails
+          console.log('Falling back to local recommendation model');
+          resolve(getRecommendation(soilData));
+        }
+      } catch (error) {
+        console.error('Error in recommendation service:', error);
+        // Always provide a result even if errors occur
+        resolve(getRecommendation(soilData));
+      }
+      
       timeoutId = null;
     }, 1200);
   });

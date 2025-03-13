@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import { observeElements } from '../utils/animations';
 import { useRecommendation } from '../context/RecommendationContext';
 import { BarChart3, Thermometer, Droplets, Cloud, Sprout } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
 
 const sliderConfig = [
   { 
@@ -74,7 +76,8 @@ const sliderConfig = [
 ];
 
 const RecommendationForm = () => {
-  const { soilData, setSoilData, recommendations, isLoading, fetchRecommendations } = useRecommendation();
+  const { soilData, setSoilData, isLoading, fetchRecommendations } = useRecommendation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const cleanup = observeElements();
@@ -88,15 +91,22 @@ const RecommendationForm = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    fetchRecommendations();
+    
+    try {
+      await fetchRecommendations();
+      // Navigate to results page after getting recommendations
+      navigate('/results');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to get recommendations. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Error getting recommendations:", error);
+    }
   };
-
-  // If we already have recommendations, don't show the form
-  if (recommendations) {
-    return null;
-  }
 
   return (
     <div id="recommendation-form" className="section-container">
