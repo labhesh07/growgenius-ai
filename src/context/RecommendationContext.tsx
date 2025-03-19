@@ -38,10 +38,18 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
       const data = await getRecommendationAsync(soilData);
       setRecommendations(data);
       
-      // Enhanced toast with more crop information
+      // Enhanced toast with more crop information including season if available
+      const topCrop = data[0];
+      let toastDescription = `Top recommendation: ${topCrop.crop.replace('_', ' ')} (${Math.round(topCrop.suitabilityScore)}% suitable)`;
+      
+      // Add season information if available
+      if (topCrop.season) {
+        toastDescription += ` - ${topCrop.season} season crop`;
+      }
+      
       toast({
         title: "Analysis Complete",
-        description: `Top recommendation: ${data[0].crop.replace('_', ' ')} (${Math.round(data[0].suitabilityScore)}% suitable)`,
+        description: toastDescription,
         duration: 3000,
       });
       

@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useRecommendation } from '../context/RecommendationContext';
 import { observeElements } from '../utils/animations';
-import { Leaf, Droplets, Thermometer, Cloud, BarChart3, Check } from 'lucide-react';
+import { Leaf, Droplets, Thermometer, Cloud, BarChart3, Check, Calendar, Clock } from 'lucide-react';
 
 const ResultsCard = () => {
   const { recommendations, isLoading, soilData } = useRecommendation();
@@ -64,6 +64,24 @@ const ResultsCard = () => {
             </div>
             
             <p className="mb-6 text-foreground/80">{topRecommendation.description}</p>
+            
+            {/* Season and Growth Duration */}
+            {(topRecommendation.season || topRecommendation.growthDuration) && (
+              <div className="mb-6 flex flex-wrap gap-4">
+                {topRecommendation.season && (
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 mr-2 text-primary" />
+                    <span className="text-sm font-medium">Season: {topRecommendation.season}</span>
+                  </div>
+                )}
+                {topRecommendation.growthDuration && (
+                  <div className="flex items-center">
+                    <Clock className="w-4 h-4 mr-2 text-primary" />
+                    <span className="text-sm font-medium">Growth Duration: {topRecommendation.growthDuration}</span>
+                  </div>
+                )}
+              </div>
+            )}
             
             <div className="mb-6">
               <h4 className="text-sm font-medium mb-2">Suitability Score</h4>
@@ -173,6 +191,24 @@ const ResultsCard = () => {
             </div>
             
             <p className="text-sm text-foreground/80 mb-3 line-clamp-2">{rec.description}</p>
+            
+            {/* Season and Growth Duration (compact version) */}
+            {(rec.season || rec.growthDuration) && (
+              <div className="flex flex-wrap gap-2 mb-3 text-xs">
+                {rec.season && (
+                  <span className="flex items-center bg-primary/10 px-2 py-0.5 rounded-full">
+                    <Calendar className="w-3 h-3 mr-1" />
+                    {rec.season}
+                  </span>
+                )}
+                {rec.growthDuration && (
+                  <span className="flex items-center bg-primary/10 px-2 py-0.5 rounded-full">
+                    <Clock className="w-3 h-3 mr-1" />
+                    {rec.growthDuration}
+                  </span>
+                )}
+              </div>
+            )}
             
             <div className="mb-3">
               <div className="flex items-center justify-between text-xs mb-1">
