@@ -20,13 +20,22 @@ export interface CropRecommendation {
   idealConditions: Partial<SoilData>;
 }
 
-// Keep the original CROPS and CROP_DATA for fallback
+// Expanded list of crops including more Indian varieties
 const CROPS = [
+  // Original crops
   'rice', 'maize', 'chickpea', 'kidneybeans', 'pigeonpeas',
   'mothbeans', 'mungbean', 'blackgram', 'lentil', 'pomegranate',
   'banana', 'mango', 'grapes', 'watermelon', 'muskmelon',
   'apple', 'orange', 'papaya', 'coconut', 'cotton',
-  'jute', 'coffee'
+  'jute', 'coffee',
+  
+  // Additional Indian crops
+  'wheat', 'sugarcane', 'turmeric', 'ginger', 'mustard',
+  'sorghum', 'pearl_millet', 'finger_millet', 'groundnut', 'sesame',
+  'cumin', 'coriander', 'fenugreek', 'clove', 'cardamom',
+  'chilli', 'garlic', 'onion', 'potato', 'tomato',
+  'okra', 'eggplant', 'cauliflower', 'cabbage', 'spinach',
+  'guava', 'litchi', 'jackfruit', 'sapota'
 ];
 
 const CROP_DATA: Record<string, {
@@ -143,6 +152,152 @@ const CROP_DATA: Record<string, {
     description: 'Tropical evergreen shrub grown for its seeds.',
     idealConditions: { nitrogen: 40, phosphorus: 30, potassium: 50, temperature: 22, humidity: 75, ph: 5.5, rainfall: 150 },
     fertilizers: ['NPK 12-12-17', 'Ammonium Sulfate', 'Dolomite']
+  },
+  // Additional Indian crop data
+  'wheat': {
+    description: 'A staple cereal grain in India, particularly in northern regions.',
+    idealConditions: { nitrogen: 60, phosphorus: 30, potassium: 30, temperature: 20, humidity: 60, ph: 6.5, rainfall: 75 },
+    fertilizers: ['Urea', 'DAP', 'MOP']
+  },
+  'sugarcane': {
+    description: 'A major cash crop used for sugar production and jaggery.',
+    idealConditions: { nitrogen: 100, phosphorus: 50, potassium: 50, temperature: 27, humidity: 80, ph: 6.5, rainfall: 150 },
+    fertilizers: ['Urea', 'SSP', 'MOP']
+  },
+  'turmeric': {
+    description: 'A traditional spice and medicinal crop with vibrant color.',
+    idealConditions: { nitrogen: 30, phosphorus: 40, potassium: 120, temperature: 25, humidity: 80, ph: 6.5, rainfall: 150 },
+    fertilizers: ['FYM', 'Neem Cake', 'NPK 5-10-30']
+  },
+  'ginger': {
+    description: 'A spice crop grown for its aromatic rhizome widely used in cooking.',
+    idealConditions: { nitrogen: 40, phosphorus: 30, potassium: 60, temperature: 25, humidity: 80, ph: 6.0, rainfall: 150 },
+    fertilizers: ['Compost', 'NPK 10-10-20', 'Neem Cake']
+  },
+  'mustard': {
+    description: 'An important oilseed crop grown throughout northern India.',
+    idealConditions: { nitrogen: 60, phosphorus: 40, potassium: 40, temperature: 20, humidity: 60, ph: 6.5, rainfall: 60 },
+    fertilizers: ['Urea', 'SSP', 'MOP']
+  },
+  'sorghum': {
+    description: 'A drought-resistant grain crop also known as jowar.',
+    idealConditions: { nitrogen: 50, phosphorus: 40, potassium: 30, temperature: 27, humidity: 60, ph: 6.5, rainfall: 70 },
+    fertilizers: ['Urea', 'SSP', 'MOP']
+  },
+  'pearl_millet': {
+    description: 'A highly drought-resistant crop (bajra) common in arid regions.',
+    idealConditions: { nitrogen: 40, phosphorus: 20, potassium: 20, temperature: 28, humidity: 50, ph: 7.0, rainfall: 50 },
+    fertilizers: ['Urea', 'DAP', 'Compost']
+  },
+  'finger_millet': {
+    description: 'A nutritious grain (ragi) suitable for dry regions.',
+    idealConditions: { nitrogen: 30, phosphorus: 20, potassium: 20, temperature: 27, humidity: 60, ph: 6.5, rainfall: 80 },
+    fertilizers: ['FYM', 'Compost', 'Low NPK']
+  },
+  'groundnut': {
+    description: 'An important oilseed and food crop also known as peanut.',
+    idealConditions: { nitrogen: 20, phosphorus: 40, potassium: 30, temperature: 25, humidity: 65, ph: 6.5, rainfall: 90 },
+    fertilizers: ['Gypsum', 'SSP', 'NPK 20-40-0']
+  },
+  'sesame': {
+    description: 'An ancient oilseed crop (til) with high oil content.',
+    idealConditions: { nitrogen: 30, phosphorus: 30, potassium: 30, temperature: 27, humidity: 60, ph: 6.5, rainfall: 70 },
+    fertilizers: ['NPK 10-10-10', 'Urea', 'SSP']
+  },
+  'cumin': {
+    description: 'A popular spice crop grown mainly in Gujarat and Rajasthan.',
+    idealConditions: { nitrogen: 20, phosphorus: 30, potassium: 20, temperature: 25, humidity: 50, ph: 7.0, rainfall: 40 },
+    fertilizers: ['NPK 10-15-10', 'Compost', 'Micronutrients']
+  },
+  'coriander': {
+    description: 'A versatile herb used for both leaves and seeds in Indian cuisine.',
+    idealConditions: { nitrogen: 20, phosphorus: 30, potassium: 20, temperature: 23, humidity: 60, ph: 6.5, rainfall: 60 },
+    fertilizers: ['Compost', 'Low NPK', 'Vermicompost']
+  },
+  'fenugreek': {
+    description: 'A dual-purpose crop used as vegetable and spice (methi).',
+    idealConditions: { nitrogen: 25, phosphorus: 30, potassium: 20, temperature: 22, humidity: 60, ph: 6.5, rainfall: 50 },
+    fertilizers: ['Compost', 'NPK 5-10-5', 'Vermicompost']
+  },
+  'clove': {
+    description: 'A high-value aromatic spice grown in southern India.',
+    idealConditions: { nitrogen: 30, phosphorus: 30, potassium: 60, temperature: 25, humidity: 70, ph: 6.0, rainfall: 200 },
+    fertilizers: ['Compost', 'NPK 10-10-20', 'Potash']
+  },
+  'cardamom': {
+    description: 'A high-value spice known as the "Queen of Spices".',
+    idealConditions: { nitrogen: 30, phosphorus: 30, potassium: 60, temperature: 22, humidity: 80, ph: 6.0, rainfall: 250 },
+    fertilizers: ['Compost', 'NPK 10-10-20', 'Organic Matter']
+  },
+  'chilli': {
+    description: 'A popular spice crop grown throughout India.',
+    idealConditions: { nitrogen: 50, phosphorus: 50, potassium: 50, temperature: 25, humidity: 70, ph: 6.5, rainfall: 75 },
+    fertilizers: ['NPK 15-15-15', 'Calcium Nitrate', 'Micronutrients']
+  },
+  'garlic': {
+    description: 'An important condiment crop with medicinal properties.',
+    idealConditions: { nitrogen: 60, phosphorus: 40, potassium: 40, temperature: 18, humidity: 60, ph: 6.5, rainfall: 60 },
+    fertilizers: ['NPK 10-10-10', 'Compost', 'Sulfur']
+  },
+  'onion': {
+    description: 'A fundamental ingredient in Indian cooking.',
+    idealConditions: { nitrogen: 50, phosphorus: 40, potassium: 60, temperature: 20, humidity: 65, ph: 6.5, rainfall: 65 },
+    fertilizers: ['NPK 10-10-20', 'Compost', 'MOP']
+  },
+  'potato': {
+    description: 'A widely grown tuber crop across northern and eastern India.',
+    idealConditions: { nitrogen: 60, phosphorus: 60, potassium: 100, temperature: 18, humidity: 75, ph: 6.0, rainfall: 75 },
+    fertilizers: ['NPK 10-20-20', 'Urea', 'MOP']
+  },
+  'tomato': {
+    description: 'A versatile vegetable crop grown throughout India.',
+    idealConditions: { nitrogen: 50, phosphorus: 50, potassium: 70, temperature: 24, humidity: 60, ph: 6.5, rainfall: 70 },
+    fertilizers: ['NPK 10-20-20', 'Calcium Nitrate', 'Micronutrients']
+  },
+  'okra': {
+    description: 'A popular vegetable (ladies finger) grown in warm regions.',
+    idealConditions: { nitrogen: 40, phosphorus: 40, potassium: 40, temperature: 27, humidity: 70, ph: 6.5, rainfall: 80 },
+    fertilizers: ['NPK 10-10-10', 'Compost', 'Micronutrients']
+  },
+  'eggplant': {
+    description: 'A widely consumed vegetable (brinjal) in Indian cuisine.',
+    idealConditions: { nitrogen: 50, phosphorus: 40, potassium: 30, temperature: 26, humidity: 70, ph: 6.0, rainfall: 75 },
+    fertilizers: ['NPK 10-10-10', 'Urea', 'Micronutrients']
+  },
+  'cauliflower': {
+    description: 'A popular cole crop grown during winter in northern India.',
+    idealConditions: { nitrogen: 60, phosphorus: 50, potassium: 50, temperature: 18, humidity: 75, ph: 6.5, rainfall: 60 },
+    fertilizers: ['NPK 15-15-15', 'Urea', 'Boron']
+  },
+  'cabbage': {
+    description: 'A leafy vegetable grown primarily in winter months.',
+    idealConditions: { nitrogen: 60, phosphorus: 40, potassium: 40, temperature: 17, humidity: 70, ph: 6.5, rainfall: 60 },
+    fertilizers: ['NPK 15-15-15', 'Urea', 'Boron']
+  },
+  'spinach': {
+    description: 'A nutritious leafy vegetable grown throughout India.',
+    idealConditions: { nitrogen: 50, phosphorus: 30, potassium: 20, temperature: 20, humidity: 70, ph: 6.5, rainfall: 50 },
+    fertilizers: ['Compost', 'Low NPK', 'Vermicompost']
+  },
+  'guava': {
+    description: 'A popular tropical fruit rich in vitamin C.',
+    idealConditions: { nitrogen: 40, phosphorus: 40, potassium: 40, temperature: 26, humidity: 70, ph: 6.5, rainfall: 100 },
+    fertilizers: ['NPK 10-10-10', 'FYM', 'Micronutrients']
+  },
+  'litchi': {
+    description: 'A delicious subtropical fruit grown in eastern India.',
+    idealConditions: { nitrogen: 50, phosphorus: 40, potassium: 60, temperature: 25, humidity: 75, ph: 6.0, rainfall: 120 },
+    fertilizers: ['NPK 10-10-20', 'FYM', 'Zinc Sulfate']
+  },
+  'jackfruit': {
+    description: 'The largest tree-borne fruit, popular in southern India.',
+    idealConditions: { nitrogen: 40, phosphorus: 40, potassium: 60, temperature: 28, humidity: 80, ph: 6.5, rainfall: 150 },
+    fertilizers: ['FYM', 'Low NPK', 'Potash']
+  },
+  'sapota': {
+    description: 'A tropical fruit (chikoo) popular in western India.',
+    idealConditions: { nitrogen: 40, phosphorus: 40, potassium: 40, temperature: 28, humidity: 75, ph: 6.5, rainfall: 125 },
+    fertilizers: ['NPK 10-10-10', 'FYM', 'Micronutrients']
   }
 };
 

@@ -38,10 +38,10 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
       const data = await getRecommendationAsync(soilData);
       setRecommendations(data);
       
-      // Show success toast
+      // Enhanced toast with more crop information
       toast({
         title: "Analysis Complete",
-        description: `Recommended crop: ${data[0].crop}`,
+        description: `Top recommendation: ${data[0].crop.replace('_', ' ')} (${Math.round(data[0].suitabilityScore)}% suitable)`,
         duration: 3000,
       });
       

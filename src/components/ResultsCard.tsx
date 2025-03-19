@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -18,6 +19,14 @@ const ResultsCard = () => {
   }
 
   const topRecommendation = recommendations[0];
+  
+  // Format crop name for display (replace underscores with spaces and capitalize)
+  const formatCropName = (name: string) => {
+    return name
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   return (
     <div className="section-container">
@@ -42,7 +51,7 @@ const ResultsCard = () => {
                 <Leaf className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="text-2xl font-medium capitalize mb-1">{topRecommendation.crop}</h3>
+                <h3 className="text-2xl font-medium capitalize mb-1">{formatCropName(topRecommendation.crop)}</h3>
                 <div className="flex items-center space-x-2">
                   <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-medium">
                     Top Recommendation
@@ -156,7 +165,7 @@ const ResultsCard = () => {
                 <Leaf className="w-5 h-5 text-secondary-foreground" />
               </div>
               <div>
-                <h4 className="text-lg font-medium capitalize">{rec.crop}</h4>
+                <h4 className="text-lg font-medium capitalize">{formatCropName(rec.crop)}</h4>
                 <span className="text-xs text-foreground/60">
                   {Math.round(rec.suitabilityScore)}% suitable
                 </span>
