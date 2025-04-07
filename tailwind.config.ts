@@ -97,6 +97,20 @@ export default {
 					900: '#524c49',
 					950: '#2c2825',
 				},
+				// Environmental color palette
+				forest: {
+					50: '#f3f9f3',
+					100: '#e7f3e5',
+					200: '#d0e7cc',
+					300: '#aad5a2',
+					400: '#7dbf70',
+					500: '#57a349',
+					600: '#41883a',
+					700: '#346c30',
+					800: '#2c572a',
+					900: '#244923',
+					950: '#0f2a11',
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -142,6 +156,24 @@ export default {
 					from: { transform: 'scale(0.95)', opacity: '0' },
 					to: { transform: 'scale(1)', opacity: '1' },
 				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' },
+				},
+				'wave': {
+					'0%': { transform: 'rotate(0.0deg)' },
+					'10%': { transform: 'rotate(14.0deg)' },
+					'20%': { transform: 'rotate(-8.0deg)' },
+					'30%': { transform: 'rotate(14.0deg)' },
+					'40%': { transform: 'rotate(-4.0deg)' },
+					'50%': { transform: 'rotate(10.0deg)' },
+					'60%': { transform: 'rotate(0.0deg)' },
+					'100%': { transform: 'rotate(0.0deg)' },
+				},
+				'shimmer': {
+					'0%': { backgroundPosition: '-200% 0' },
+					'100%': { backgroundPosition: '200% 0' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -151,13 +183,19 @@ export default {
 				'fade-in-down': 'fade-in-down 0.7s ease-out',
 				'pulse-slow': 'pulse-slow 3s infinite ease-in-out',
 				'scale-in': 'scale-in 0.3s ease-out',
+				'float': 'float 3s infinite ease-in-out',
+				'wave': 'wave 2.5s infinite',
+				'shimmer': 'shimmer 2.5s infinite linear',
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+				'leaf-pattern': "url(\"data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0c5.523 0 10 4.477 10 10v10H0V0z' fill='%2322c55e' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E\")",
 			},
 			boxShadow: {
 				'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
 				'soft': '0 4px 28px 0 rgba(0, 0, 0, 0.03)',
+				'eco': '0 10px 15px -3px rgba(34, 197, 94, 0.1), 0 4px 6px -4px rgba(34, 197, 94, 0.1)',
 			},
 		}
 	},
