@@ -9,7 +9,8 @@ import {
 } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useDiseaseDetection } from '@/context/DiseaseDetectionContext';
-import { Leaf, AlertTriangle } from 'lucide-react';
+import { Leaf, AlertTriangle, Info } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const DiseaseResult = () => {
   const { detectionResult, error } = useDiseaseDetection();
@@ -28,22 +29,39 @@ const DiseaseResult = () => {
     return null;
   }
 
+  const isHealthy = detectionResult.diseaseName === "Healthy Plant";
+
   return (
     <Card className="w-full mt-6 border-2 animate-fadeIn">
-      <CardHeader className={detectionResult.diseaseName === "Healthy Plant" ? "bg-green-50" : "bg-amber-50"}>
+      <CardHeader className={isHealthy ? "bg-green-50" : "bg-amber-50"}>
         <div className="flex items-center gap-2">
-          <Leaf className={`h-5 w-5 ${detectionResult.diseaseName === "Healthy Plant" ? "text-green-600" : "text-amber-600"}`} />
-          <CardTitle>{detectionResult.diseaseName}</CardTitle>
+          <Leaf className={`h-5 w-5 ${isHealthy ? "text-green-600" : "text-amber-600"}`} />
+          <div>
+            <CardTitle>{detectionResult.diseaseName}</CardTitle>
+            {detectionResult.plantType && (
+              <span className="text-sm text-muted-foreground">Plant type: {detectionResult.plantType}</span>
+            )}
+          </div>
         </div>
-        <CardDescription className="flex justify-between items-center">
-          <span>Confidence: {detectionResult.confidence}%</span>
+        <CardDescription className="flex justify-between items-center mt-2">
+          <div className="flex items-center">
+            <Badge variant={isHealthy ? "outline" : "secondary"} className="mr-2">
+              {detectionResult.confidence}% confidence
+            </Badge>
+            {!isHealthy && (
+              <Badge variant="destructive">Requires treatment</Badge>
+            )}
+          </div>
         </CardDescription>
       </CardHeader>
       
       <CardContent className="pt-6">
         <div className="space-y-6">
           <div>
-            <h3 className="font-medium mb-2">Description</h3>
+            <h3 className="font-medium mb-2 flex items-center">
+              <Info className="h-4 w-4 mr-2" /> 
+              Description
+            </h3>
             <p className="text-sm text-muted-foreground">{detectionResult.description}</p>
           </div>
 
