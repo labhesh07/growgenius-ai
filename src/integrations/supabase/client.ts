@@ -22,9 +22,40 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
+// Helper function to create plants bucket if it doesn't exist
+const ensurePlantsBucketExists = async () => {
+  try {
+    // Check if the bucket already exists
+    const { data: buckets } = await supabase.storage.listBuckets();
+    
+    if (!buckets?.some(bucket => bucket.name === 'plants')) {
+      // Create the bucket if it doesn't exist
+      const { error } = await supabase.storage.createBucket('plants', {
+        public: true,
+        fileSizeLimit: 10485760, // 10MB
+        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp']
+      });
+      
+      if (error) {
+        console.error('Error creating plants bucket:', error);
+      } else {
+        console.log('Plants bucket created successfully');
+      }
+    }
+  } catch (error) {
+    console.error('Error checking/creating plants bucket:', error);
+  }
+};
+
+// Call this function when the app initializes
+ensurePlantsBucketExists();
+
 // Helper function to upload a plant image to storage
 export const uploadPlantImage = async (file: File, userId?: string) => {
   try {
+    // Ensure the bucket exists
+    await ensurePlantsBucketExists();
+    
     // Generate a unique file path
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;

@@ -1,5 +1,5 @@
-
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, uploadPlantImage } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
 export interface DiseaseDetectionResult {
   id?: string;
@@ -11,12 +11,29 @@ export interface DiseaseDetectionResult {
   plantType?: string;
 }
 
+type PlantDisease = Database['public']['Tables']['plant_diseases']['Row'];
+
 // Enhanced detection algorithm that uses our Supabase database
 export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetectionResult> => {
   return new Promise(async (resolve, reject) => {
     try {
       // In a real app, we would upload the image and analyze it with ML
       // For now, we'll use some image analysis heuristics and our database
+      
+      // Upload the image to Supabase Storage for record keeping
+      let imagePath: string | null = null;
+      let imageUrl: string | null = null;
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const uploadResult = await uploadPlantImage(imageFile, session.user.id);
+          imagePath = uploadResult.filePath;
+          imageUrl = uploadResult.publicUrl;
+        }
+      } catch (uploadError) {
+        console.error("Image upload failed, continuing with analysis:", uploadError);
+      }
       
       // Simulate image analysis delay
       setTimeout(async () => {
@@ -38,8 +55,7 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
         // Query our disease database to get a relevant match based on the extracted info
         const { data: diseases, error } = await supabase
           .from('plant_diseases')
-          .select('*')
-          .order('created_at', { ascending: false });
+          .select('*');
         
         if (error) {
           console.error("Error fetching diseases from database:", error);
@@ -57,7 +73,7 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
         // If we could extract plant type from the filename, filter by that
         if (extractedPlantType) {
           const plantMatches = diseases.filter(
-            d => d.plant_type.toLowerCase() === extractedPlantType || 
+            (d: PlantDisease) => d.plant_type.toLowerCase() === extractedPlantType || 
                  d.plant_type.toLowerCase().includes(extractedPlantType)
           );
           if (plantMatches.length > 0) {
@@ -68,7 +84,7 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
         // If we could extract disease type from filename, filter by that
         if (extractedDiseaseType) {
           const diseaseMatches = matchedDiseases.filter(
-            d => d.disease_name.toLowerCase().includes(extractedDiseaseType)
+            (d: PlantDisease) => d.disease_name.toLowerCase().includes(extractedDiseaseType)
           );
           if (diseaseMatches.length > 0) {
             matchedDiseases = diseaseMatches;
@@ -76,8 +92,7 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
         }
         
         // Add more randomness - either select from our matched subset
-        // or have a small chance to detect a healthy plant
-        let selectedDisease;
+        let selectedDisease: PlantDisease;
         
         // 85% chance to use our matched disease subset, 15% chance for a random disease
         if (matchedDiseases.length > 0 && Math.random() < 0.85) {
@@ -90,20 +105,23 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
           // Small chance (10%) to detect a healthy plant if filename contains positive terms
           const healthyTerms = ["healthy", "good", "normal", "fine"];
           if (healthyTerms.some(term => fileName.includes(term)) || Math.random() < 0.1) {
-            selectedDisease = diseases.find(d => d.disease_name === "Healthy Plant") || selectedDisease;
+            const healthyPlant = diseases.find((d: PlantDisease) => d.disease_name === "Healthy Plant");
+            if (healthyPlant) {
+              selectedDisease = healthyPlant;
+            }
           }
         }
         
         // Save detection to history if user is logged in
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          // We'd normally upload the image to storage first and get its path
-          // For now, just save the detection without the image
+          // Save the detection to history
           const { error: historyError } = await supabase
             .from('detection_history')
             .insert({
               user_id: session.user.id,
               disease_id: selectedDisease.id,
+              image_path: imagePath,
               detected_at: new Date().toISOString()
             });
             

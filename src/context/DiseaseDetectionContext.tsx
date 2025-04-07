@@ -1,8 +1,20 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { DiseaseDetectionResult, detectDiseaseAsync } from '../services/diseaseDetectionService';
 import { toast } from '@/components/ui/use-toast';
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, uploadPlantImage } from "@/integrations/supabase/client";
+import type { Database } from '@/integrations/supabase/types';
+
+type DetectionHistoryItem = {
+  id: string;
+  detected_at: string | null;
+  plant_diseases: {
+    id: string;
+    disease_name: string;
+    plant_type: string;
+    confidence: number;
+  } | null;
+};
 
 interface DiseaseDetectionContextType {
   selectedImage: File | null;
@@ -14,7 +26,7 @@ interface DiseaseDetectionContextType {
   detectDisease: () => Promise<void>;
   resetDetection: () => void;
   isAnalyzing: boolean;
-  history: any[] | null;
+  history: DetectionHistoryItem[] | null;
   loadingHistory: boolean;
   fetchHistory: () => Promise<void>;
 }
@@ -28,7 +40,7 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [history, setHistory] = useState<any[] | null>(null);
+  const [history, setHistory] = useState<DetectionHistoryItem[] | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
   const handleSetSelectedImage = (file: File | null) => {
@@ -46,7 +58,7 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
     }
   };
 
-  const fetchHistory = async (): Promise<void> => {
+  const fetchHistory = useCallback(async (): Promise<void> => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -77,13 +89,13 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
         return;
       }
       
-      setHistory(data);
+      setHistory(data as DetectionHistoryItem[]);
     } catch (err) {
       console.error("Error in fetch history:", err);
     } finally {
       setLoadingHistory(false);
     }
-  };
+  }, []);
 
   const detectDisease = async (): Promise<void> => {
     if (!selectedImage) {
@@ -117,6 +129,9 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
           description: `Confidence: ${result.confidence}% - ${result.plantType || 'Plant'} analysis complete`,
           duration: 5000,
         });
+
+        // Refresh history after detection
+        fetchHistory();
       }, 500);
       
     } catch (err) {
