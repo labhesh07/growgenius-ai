@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { DiseaseDetectionResult, detectDiseaseAsync } from '../services/diseaseDetectionService';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
+import { supabase } from "@/integrations/supabase/client";
 
 interface DiseaseDetectionContextType {
   selectedImage: File | null;
@@ -12,6 +13,10 @@ interface DiseaseDetectionContextType {
   setSelectedImage: (file: File | null) => void;
   detectDisease: () => Promise<void>;
   resetDetection: () => void;
+  isAnalyzing: boolean;
+  history: any[] | null;
+  loadingHistory: boolean;
+  fetchHistory: () => Promise<void>;
 }
 
 const DiseaseDetectionContext = createContext<DiseaseDetectionContextType | undefined>(undefined);
@@ -22,6 +27,9 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
   const [detectionResult, setDetectionResult] = useState<DiseaseDetectionResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [history, setHistory] = useState<any[] | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   const handleSetSelectedImage = (file: File | null) => {
     setSelectedImage(file);
@@ -38,6 +46,45 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
     }
   };
 
+  const fetchHistory = async (): Promise<void> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        return;
+      }
+      
+      setLoadingHistory(true);
+      
+      const { data, error } = await supabase
+        .from('detection_history')
+        .select(`
+          id,
+          detected_at,
+          plant_diseases (
+            id,
+            disease_name,
+            plant_type,
+            confidence
+          )
+        `)
+        .eq('user_id', session.user.id)
+        .order('detected_at', { ascending: false })
+        .limit(10);
+      
+      if (error) {
+        console.error("Error fetching history:", error);
+        return;
+      }
+      
+      setHistory(data);
+    } catch (err) {
+      console.error("Error in fetch history:", err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
   const detectDisease = async (): Promise<void> => {
     if (!selectedImage) {
       setError("Please select an image first.");
@@ -51,20 +98,31 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
 
     try {
       setIsLoading(true);
+      setIsAnalyzing(true);
       setError(null);
-      const result = await detectDiseaseAsync(selectedImage);
-      setDetectionResult(result);
       
-      // Show toast notification with result
-      toast({
-        title: result.diseaseName,
-        description: `Confidence: ${result.confidence}% - ${result.description.substring(0, 60)}...`,
-        duration: 5000,
-      });
+      // Reset previous result to enable animations when new result comes in
+      setDetectionResult(null);
+      
+      const result = await detectDiseaseAsync(selectedImage);
+      
+      // Introduce a slight delay to make animation more noticeable
+      setTimeout(() => {
+        setDetectionResult(result);
+        setIsAnalyzing(false);
+        
+        // Show toast notification with result
+        toast({
+          title: result.diseaseName,
+          description: `Confidence: ${result.confidence}% - ${result.plantType || 'Plant'} analysis complete`,
+          duration: 5000,
+        });
+      }, 500);
       
     } catch (err) {
       const errorMessage = 'Failed to analyze the image. Please try again.';
       setError(errorMessage);
+      setIsAnalyzing(false);
       console.error('Error detecting disease:', err);
       
       // Show error toast
@@ -95,6 +153,10 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
         setSelectedImage: handleSetSelectedImage,
         detectDisease,
         resetDetection,
+        isAnalyzing,
+        history,
+        loadingHistory,
+        fetchHistory,
       }}
     >
       {children}

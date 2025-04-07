@@ -9,7 +9,74 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      detection_history: {
+        Row: {
+          detected_at: string | null
+          disease_id: string | null
+          id: string
+          image_path: string | null
+          user_id: string | null
+        }
+        Insert: {
+          detected_at?: string | null
+          disease_id?: string | null
+          id?: string
+          image_path?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          detected_at?: string | null
+          disease_id?: string | null
+          id?: string
+          image_path?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "detection_history_disease_id_fkey"
+            columns: ["disease_id"]
+            isOneToOne: false
+            referencedRelation: "plant_diseases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plant_diseases: {
+        Row: {
+          confidence: number
+          created_at: string | null
+          description: string
+          disease_name: string
+          id: string
+          plant_type: string
+          preventive_measures: string[]
+          remedies: string[]
+          updated_at: string | null
+        }
+        Insert: {
+          confidence: number
+          created_at?: string | null
+          description: string
+          disease_name: string
+          id?: string
+          plant_type: string
+          preventive_measures: string[]
+          remedies: string[]
+          updated_at?: string | null
+        }
+        Update: {
+          confidence?: number
+          created_at?: string | null
+          description?: string
+          disease_name?: string
+          id?: string
+          plant_type?: string
+          preventive_measures?: string[]
+          remedies?: string[]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
