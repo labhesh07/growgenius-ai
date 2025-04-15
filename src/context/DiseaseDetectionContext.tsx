@@ -125,7 +125,9 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
       // Reset previous result to enable animations when new result comes in
       setDetectionResult(null);
       
+      console.log("Starting disease detection process...");
       const result = await detectDiseaseAsync(selectedImage);
+      console.log("Detection result:", result);
       
       // Introduce a slight delay to make animation more noticeable
       setTimeout(() => {

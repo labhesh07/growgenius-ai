@@ -22,8 +22,13 @@ const DiseaseDetection = () => {
     fetchHistory();
   }, [fetchHistory]);
 
-  const handleAnalyze = () => {
-    detectDisease();
+  const handleAnalyze = async () => {
+    try {
+      console.log("Analyze button clicked");
+      await detectDisease();
+    } catch (error) {
+      console.error("Error during disease detection:", error);
+    }
   };
 
   // Animation variants
