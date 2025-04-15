@@ -31,8 +31,10 @@ interface DiseaseDetectionContextType {
   fetchHistory: () => Promise<void>;
 }
 
+// Create the context with a default undefined value
 const DiseaseDetectionContext = createContext<DiseaseDetectionContextType | undefined>(undefined);
 
+// Export the provider component
 export function DiseaseDetectionProvider({ children }: { children: ReactNode }) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -43,6 +45,7 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
   const [history, setHistory] = useState<DetectionHistoryItem[] | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
+  // This handler sets the selected image and clears previous detection results
   const handleSetSelectedImage = (file: File | null) => {
     setSelectedImage(file);
     setDetectionResult(null);
@@ -58,6 +61,7 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
     }
   };
 
+  // Fetch detection history from Supabase
   const fetchHistory = useCallback(async (): Promise<void> => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -97,6 +101,7 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
     }
   }, []);
 
+  // Detect disease from the selected image
   const detectDisease = async (): Promise<void> => {
     if (!selectedImage) {
       setError("Please select an image first.");
@@ -151,12 +156,14 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
     }
   };
 
+  // Reset all detection state
   const resetDetection = () => {
     setSelectedImage(null);
     setImagePreview(null);
     setDetectionResult(null);
   };
 
+  // Return the provider with the context value
   return (
     <DiseaseDetectionContext.Provider
       value={{
@@ -179,10 +186,13 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
   );
 }
 
+// Create and export the custom hook to use this context
 export function useDiseaseDetection() {
   const context = useContext(DiseaseDetectionContext);
+  
   if (context === undefined) {
     throw new Error('useDiseaseDetection must be used within a DiseaseDetectionProvider');
   }
+  
   return context;
 }

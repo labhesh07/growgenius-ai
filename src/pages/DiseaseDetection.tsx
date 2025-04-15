@@ -11,6 +11,7 @@ import { useDiseaseDetection } from '@/context/DiseaseDetectionContext';
 import { motion } from 'framer-motion';
 
 const DiseaseDetection = () => {
+  // Use the context hook
   const { detectDisease, isLoading, imagePreview, fetchHistory } = useDiseaseDetection();
 
   useEffect(() => {
@@ -45,6 +46,7 @@ const DiseaseDetection = () => {
     }
   };
 
+  // Render the component
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />

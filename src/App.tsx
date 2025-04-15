@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import { RecommendationProvider } from "./context/RecommendationContext";
 import { DiseaseDetectionProvider } from "./context/DiseaseDetectionContext";
 
+// Create a new QueryClient instance
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -18,9 +19,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <RecommendationProvider>
-        <DiseaseDetectionProvider>
-          <BrowserRouter>
+      <BrowserRouter>
+        <RecommendationProvider>
+          <DiseaseDetectionProvider>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/results" element={<Results />} />
@@ -28,9 +29,9 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </DiseaseDetectionProvider>
-      </RecommendationProvider>
+          </DiseaseDetectionProvider>
+        </RecommendationProvider>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
