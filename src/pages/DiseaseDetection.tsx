@@ -5,7 +5,7 @@ import Footer from '@/components/Footer';
 import ImageUploader from '@/components/ImageUploader';
 import DiseaseResult from '@/components/DiseaseResult';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, Plant, Leaf } from 'lucide-react';
+import { ArrowLeft, Loader2, Sprout, Leaf } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useDiseaseDetection } from '@/context/DiseaseDetectionContext';
 import { motion } from 'framer-motion';
@@ -85,7 +85,7 @@ const DiseaseDetection = () => {
                   transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                   className="bg-green-100 dark:bg-green-900/30 p-4 rounded-full"
                 >
-                  <Plant className="h-12 w-12 text-green-600 dark:text-green-400" />
+                  <Sprout className="h-12 w-12 text-green-600 dark:text-green-400" />
                 </motion.div>
               </div>
               <h1 className="text-3xl font-bold tracking-tight mb-4">Plant Disease Detection</h1>
