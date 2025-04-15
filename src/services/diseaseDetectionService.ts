@@ -1,3 +1,4 @@
+
 import { supabase, uploadPlantImage } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -17,6 +18,8 @@ type PlantDisease = Database['public']['Tables']['plant_diseases']['Row'];
 export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetectionResult> => {
   return new Promise(async (resolve, reject) => {
     try {
+      console.log("Starting disease detection for image:", imageFile.name);
+      
       // In a real app, we would upload the image and analyze it with ML
       // For now, we'll use some image analysis heuristics and our database
       
@@ -27,9 +30,13 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
+          console.log("User is logged in, uploading image");
           const uploadResult = await uploadPlantImage(imageFile, session.user.id);
           imagePath = uploadResult.filePath;
           imageUrl = uploadResult.publicUrl;
+          console.log("Image uploaded successfully:", imageUrl);
+        } else {
+          console.log("No user session found, continuing without uploading");
         }
       } catch (uploadError) {
         console.error("Image upload failed, continuing with analysis:", uploadError);
@@ -64,10 +71,12 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
         }
         
         if (!diseases || diseases.length === 0) {
+          console.error("No disease data available in the database");
           reject(new Error("No disease data available"));
           return;
         }
         
+        console.log(`Found ${diseases.length} diseases in the database`);
         let matchedDiseases = diseases;
         
         // If we could extract plant type from the filename, filter by that
@@ -77,6 +86,7 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
                  d.plant_type.toLowerCase().includes(extractedPlantType)
           );
           if (plantMatches.length > 0) {
+            console.log(`Filtered to ${plantMatches.length} diseases by plant type: ${extractedPlantType}`);
             matchedDiseases = plantMatches;
           }
         }
@@ -87,6 +97,7 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
             (d: PlantDisease) => d.disease_name.toLowerCase().includes(extractedDiseaseType)
           );
           if (diseaseMatches.length > 0) {
+            console.log(`Filtered to ${diseaseMatches.length} diseases by disease type: ${extractedDiseaseType}`);
             matchedDiseases = diseaseMatches;
           }
         }
@@ -98,9 +109,11 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
         if (matchedDiseases.length > 0 && Math.random() < 0.85) {
           // Select from matched diseases
           selectedDisease = matchedDiseases[Math.floor(Math.random() * matchedDiseases.length)];
+          console.log("Selected disease from matched subset:", selectedDisease.disease_name);
         } else {
           // Select a completely random disease
           selectedDisease = diseases[Math.floor(Math.random() * diseases.length)];
+          console.log("Selected random disease:", selectedDisease.disease_name);
           
           // Small chance (10%) to detect a healthy plant if filename contains positive terms
           const healthyTerms = ["healthy", "good", "normal", "fine"];
@@ -108,26 +121,34 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
             const healthyPlant = diseases.find((d: PlantDisease) => d.disease_name === "Healthy Plant");
             if (healthyPlant) {
               selectedDisease = healthyPlant;
+              console.log("Healthy plant detected!");
             }
           }
         }
         
         // Save detection to history if user is logged in
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          // Save the detection to history
-          const { error: historyError } = await supabase
-            .from('detection_history')
-            .insert({
-              user_id: session.user.id,
-              disease_id: selectedDisease.id,
-              image_path: imagePath,
-              detected_at: new Date().toISOString()
-            });
-            
-          if (historyError) {
-            console.error("Error saving detection history:", historyError);
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            console.log("Saving detection to user history");
+            // Save the detection to history
+            const { error: historyError } = await supabase
+              .from('detection_history')
+              .insert({
+                user_id: session.user.id,
+                disease_id: selectedDisease.id,
+                image_path: imagePath,
+                detected_at: new Date().toISOString()
+              });
+              
+            if (historyError) {
+              console.error("Error saving detection history:", historyError);
+            } else {
+              console.log("Detection saved to history successfully");
+            }
           }
+        } catch (historyError) {
+          console.error("Error in history saving:", historyError);
         }
         
         // Map the database result to our interface format
@@ -141,6 +162,7 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
           plantType: selectedDisease.plant_type
         };
         
+        console.log("Disease detection completed successfully");
         resolve(result);
       }, 1500);
     } catch (err) {

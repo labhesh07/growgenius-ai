@@ -17,12 +17,12 @@ const Hero = () => {
               Get AI-powered crop recommendations based on your soil composition and climate conditions to maximize your farm's yield and sustainability.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
-              <Link to="#recommendation-form">
+              <a href="#recommendation-form">
                 <Button size="lg" className="gap-2">
                   Get Started
                   <ArrowRight className="h-4 w-4" />
                 </Button>
-              </Link>
+              </a>
               <Link to="/disease-detection">
                 <Button size="lg" variant="outline" className="gap-2">
                   Diagnose Plant Disease

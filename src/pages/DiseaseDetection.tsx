@@ -5,7 +5,7 @@ import Footer from '@/components/Footer';
 import ImageUploader from '@/components/ImageUploader';
 import DiseaseResult from '@/components/DiseaseResult';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, Leaf } from 'lucide-react';
+import { ArrowLeft, Loader2, Plant, Leaf } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useDiseaseDetection } from '@/context/DiseaseDetectionContext';
 import { motion } from 'framer-motion';
@@ -48,14 +48,14 @@ const DiseaseDetection = () => {
 
   // Render the component
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-green-50/50 to-white">
       <Navbar />
       <main className="flex-grow">
         <motion.div 
           variants={pageVariants}
           initial="initial"
           animate="animate"
-          className="container mx-auto px-4 py-8"
+          className="container mx-auto px-4 py-12 max-w-5xl"
         >
           <motion.div variants={itemVariants}>
             <Link to="/">
@@ -76,25 +76,26 @@ const DiseaseDetection = () => {
           >
             <motion.div 
               variants={itemVariants}
-              className="text-center mb-8"
+              className="text-center mb-12"
             >
-              <div className="inline-flex items-center justify-center mb-4">
+              <div className="inline-flex items-center justify-center mb-6">
                 <motion.div
                   initial={{ rotate: -10 }}
                   animate={{ rotate: [0, -10, 0, 10, 0] }}
                   transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                  className="bg-green-100 dark:bg-green-900/30 p-4 rounded-full"
                 >
-                  <Leaf className="h-10 w-10 text-forest-500 dark:text-forest-400" />
+                  <Plant className="h-12 w-12 text-green-600 dark:text-green-400" />
                 </motion.div>
               </div>
-              <h1 className="text-3xl font-bold tracking-tight mb-2">Plant Disease Detection</h1>
+              <h1 className="text-3xl font-bold tracking-tight mb-4">Plant Disease Detection</h1>
               <p className="text-muted-foreground max-w-lg mx-auto">
                 Upload a plant image to identify diseases and get treatment suggestions. 
-                Our AI will analyze and provide accurate results.
+                Our AI analyzes leaf patterns and discoloration to provide accurate diagnosis.
               </p>
             </motion.div>
 
-            <div className="grid gap-8">
+            <div className="grid gap-8 bg-white/80 backdrop-blur-sm p-8 rounded-xl shadow-sm border border-green-100">
               <motion.div variants={itemVariants}>
                 <ImageUploader />
               </motion.div>
@@ -106,7 +107,7 @@ const DiseaseDetection = () => {
                 >
                   <Button 
                     onClick={handleAnalyze} 
-                    className="px-8 bg-forest-600 hover:bg-forest-700 text-white"
+                    className="px-8 bg-green-600 hover:bg-green-700 text-white"
                     size="lg"
                     disabled={isLoading}
                   >
@@ -116,7 +117,10 @@ const DiseaseDetection = () => {
                         Analyzing...
                       </>
                     ) : (
-                      'Analyze Image'
+                      <>
+                        Analyze Image
+                        <Leaf className="ml-2 h-4 w-4" />
+                      </>
                     )}
                   </Button>
                 </motion.div>
