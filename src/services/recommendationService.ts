@@ -1,3 +1,4 @@
+
 // This file contains the integration with a crop recommendation ML API
 // The original mock data is kept as a fallback
 
@@ -758,6 +759,12 @@ const calculateSuitabilityScoreWithCache = (() => {
       return cache.get(key);
     }
     
+    // Safety check - if the crop data doesn't exist, return a default low score
+    if (!CROP_DATA[crop]) {
+      console.warn(`Missing crop data for: ${crop}`);
+      return 10; // Return a low default score
+    }
+    
     const ideal = CROP_DATA[crop].idealConditions;
     
     // Calculate difference from ideal conditions
@@ -798,6 +805,8 @@ const fetchExternalRecommendation = async (soilData: SoilData): Promise<CropReco
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // Add CORS mode to help with cross-origin requests
+        'mode': 'cors',
       },
       body: JSON.stringify({
         nitrogen: soilData.nitrogen,
@@ -822,8 +831,10 @@ const fetchExternalRecommendation = async (soilData: SoilData): Promise<CropReco
       const cropName = prediction.crop.toLowerCase();
       const cropInfo = CROP_DATA[cropName] || {
         description: `A versatile crop suitable for your conditions.`,
-        idealConditions: {},
-        fertilizers: ['General purpose fertilizer']
+        idealConditions: { nitrogen: 50, phosphorus: 50, potassium: 50, temperature: 25, humidity: 60, ph: 6.5, rainfall: 100 },
+        fertilizers: ['General purpose fertilizer'],
+        season: 'Unknown',
+        growthDuration: 'Unknown'
       };
       
       return {
@@ -847,26 +858,62 @@ const fetchExternalRecommendation = async (soilData: SoilData): Promise<CropReco
 
 // Original local calculation as fallback
 export const getRecommendation = (soilData: SoilData): CropRecommendation[] => {
-  // Calculate suitability scores for all crops
-  const scores = CROPS.map(crop => ({
-    crop,
-    suitabilityScore: calculateSuitabilityScoreWithCache(crop, soilData),
-  }));
-  
-  // Sort by suitability score (descending)
-  scores.sort((a, b) => b.suitabilityScore - a.suitabilityScore);
-  
-  // Return top 3 recommendations with details
-  return scores.slice(0, 3).map(({ crop, suitabilityScore }) => ({
-    crop,
-    confidence: Math.min(99, suitabilityScore * 0.9 + Math.random() * 10), // Simulated ML confidence
-    suitabilityScore,
-    fertilizers: CROP_DATA[crop].fertilizers,
-    description: CROP_DATA[crop].description,
-    idealConditions: CROP_DATA[crop].idealConditions,
-    season: CROP_DATA[crop].season,
-    growthDuration: CROP_DATA[crop].growthDuration
-  }));
+  try {
+    // Calculate suitability scores for all crops
+    const scores = CROPS.map(crop => {
+      // Skip crops that don't have data
+      if (!CROP_DATA[crop]) {
+        return { crop, suitabilityScore: 0 };
+      }
+      
+      return {
+        crop,
+        suitabilityScore: calculateSuitabilityScoreWithCache(crop, soilData),
+      };
+    }).filter(score => score.suitabilityScore > 0); // Filter out crops with zero score
+    
+    // Sort by suitability score (descending)
+    scores.sort((a, b) => b.suitabilityScore - a.suitabilityScore);
+    
+    // Return top 3 recommendations with details
+    return scores.slice(0, 3).map(({ crop, suitabilityScore }) => {
+      // Defensive coding - provide default values if crop data not found
+      const cropData = CROP_DATA[crop] || {
+        description: `A crop suitable for your conditions.`,
+        idealConditions: { nitrogen: 50, phosphorus: 50, potassium: 50, temperature: 25, humidity: 60, ph: 6.5, rainfall: 100 },
+        fertilizers: ['General purpose fertilizer'],
+        season: 'Unknown',
+        growthDuration: 'Unknown'
+      };
+      
+      return {
+        crop,
+        confidence: Math.min(99, suitabilityScore * 0.9 + Math.random() * 10), // Simulated ML confidence
+        suitabilityScore,
+        fertilizers: cropData.fertilizers,
+        description: cropData.description,
+        idealConditions: cropData.idealConditions,
+        season: cropData.season,
+        growthDuration: cropData.growthDuration
+      };
+    });
+  } catch (error) {
+    console.error('Error generating recommendations:', error);
+    
+    // Return a safe fallback if everything else fails
+    return [
+      {
+        crop: 'rice',
+        confidence: 80,
+        suitabilityScore: 80,
+        fertilizers: ['NPK 20-20-20', 'Urea', 'Farm Yard Manure'],
+        description: 'A staple grain that thrives in wet conditions with high temperatures.',
+        idealConditions: { nitrogen: 80, phosphorus: 40, potassium: 40, temperature: 25, humidity: 80, ph: 6.5, rainfall: 200 },
+        season: 'Kharif',
+        growthDuration: '90-150 days'
+      }
+    ];
+  }
 };
 
 // Use a debouncing function for the async recommendation to prevent overloading
@@ -883,7 +930,10 @@ export const getRecommendationAsync = async (soilData: SoilData): Promise<CropRe
     timeoutId = setTimeout(async () => {
       try {
         // First try to get recommendations from the external API
-        const externalRecommendations = await fetchExternalRecommendation(soilData);
+        const externalRecommendations = await fetchExternalRecommendation(soilData).catch(err => {
+          console.error("Error in external API call:", err);
+          return null;
+        });
         
         if (externalRecommendations && externalRecommendations.length > 0) {
           // Use external recommendations if available
@@ -891,12 +941,29 @@ export const getRecommendationAsync = async (soilData: SoilData): Promise<CropRe
         } else {
           // Fall back to local recommendations if external API fails
           console.log('Falling back to local recommendation model');
-          resolve(getRecommendation(soilData));
+          const localRecommendations = getRecommendation(soilData);
+          resolve(localRecommendations);
         }
       } catch (error) {
         console.error('Error in recommendation service:', error);
         // Always provide a result even if errors occur
-        resolve(getRecommendation(soilData));
+        try {
+          const fallbackRecommendations = getRecommendation(soilData);
+          resolve(fallbackRecommendations);
+        } catch (fallbackError) {
+          // Ultimate fallback if everything fails
+          console.error('Ultimate fallback activated due to error:', fallbackError);
+          resolve([{
+            crop: 'rice',
+            confidence: 80,
+            suitabilityScore: 80,
+            fertilizers: ['NPK 20-20-20', 'Urea', 'Farm Yard Manure'],
+            description: 'A staple grain that thrives in wet conditions with high temperatures.',
+            idealConditions: { nitrogen: 80, phosphorus: 40, potassium: 40, temperature: 25, humidity: 80, ph: 6.5, rainfall: 200 },
+            season: 'Kharif',
+            growthDuration: '90-150 days'
+          }]);
+        }
       }
       
       timeoutId = null;

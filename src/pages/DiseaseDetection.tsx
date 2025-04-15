@@ -9,6 +9,7 @@ import { ArrowLeft, Loader2, Sprout, Leaf } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useDiseaseDetection } from '@/context/DiseaseDetectionContext';
 import { motion } from 'framer-motion';
+import { toast } from '@/components/ui/use-toast';
 
 const DiseaseDetection = () => {
   // Use the context hook
@@ -19,7 +20,10 @@ const DiseaseDetection = () => {
     window.scrollTo(0, 0);
     
     // Fetch detection history if user is logged in
-    fetchHistory();
+    fetchHistory().catch(error => {
+      console.log("Non-critical error fetching history:", error);
+      // This is non-critical so we don't show an error toast
+    });
   }, [fetchHistory]);
 
   const handleAnalyze = async () => {
@@ -28,6 +32,12 @@ const DiseaseDetection = () => {
       await detectDisease();
     } catch (error) {
       console.error("Error during disease detection:", error);
+      toast({
+        title: "Detection Failed",
+        description: "We couldn't analyze your image. Please try again with a clearer image.",
+        variant: "destructive",
+        duration: 3000,
+      });
     }
   };
 
