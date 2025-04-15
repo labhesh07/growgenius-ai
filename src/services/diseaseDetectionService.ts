@@ -10,6 +10,10 @@ export interface DiseaseDetectionResult {
   remedies: string[];
   preventiveMeasures: string[];
   plantType?: string;
+  severity?: string;
+  scientificName?: string;
+  symptoms?: string[];
+  imageUrl?: string;
 }
 
 type PlantDisease = Database['public']['Tables']['plant_diseases']['Row'];
@@ -20,7 +24,7 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
     try {
       console.log("Starting disease detection for image:", imageFile.name);
       
-      // In a real app, we would upload the image and analyze it with ML
+      // In a real app, we would use ML to analyze the image
       // For now, we'll use some image analysis heuristics and our database
       
       // Upload the image to Supabase Storage for record keeping
@@ -151,7 +155,7 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
           console.error("Error in history saving:", historyError);
         }
         
-        // Map the database result to our interface format
+        // Map the database result to our interface format (including new fields)
         const result: DiseaseDetectionResult = {
           id: selectedDisease.id,
           diseaseName: selectedDisease.disease_name,
@@ -159,7 +163,11 @@ export const detectDiseaseAsync = async (imageFile: File): Promise<DiseaseDetect
           description: selectedDisease.description,
           remedies: selectedDisease.remedies,
           preventiveMeasures: selectedDisease.preventive_measures,
-          plantType: selectedDisease.plant_type
+          plantType: selectedDisease.plant_type,
+          severity: selectedDisease.severity_level || undefined,
+          scientificName: selectedDisease.scientific_name || undefined,
+          symptoms: selectedDisease.symptoms || undefined,
+          imageUrl: selectedDisease.image_url || undefined
         };
         
         console.log("Disease detection completed successfully");

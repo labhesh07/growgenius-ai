@@ -48,9 +48,13 @@ export type Database = {
           description: string
           disease_name: string
           id: string
+          image_url: string | null
           plant_type: string
           preventive_measures: string[]
           remedies: string[]
+          scientific_name: string | null
+          severity_level: string | null
+          symptoms: string[] | null
           updated_at: string | null
         }
         Insert: {
@@ -59,9 +63,13 @@ export type Database = {
           description: string
           disease_name: string
           id?: string
+          image_url?: string | null
           plant_type: string
           preventive_measures: string[]
           remedies: string[]
+          scientific_name?: string | null
+          severity_level?: string | null
+          symptoms?: string[] | null
           updated_at?: string | null
         }
         Update: {
@@ -70,12 +78,48 @@ export type Database = {
           description?: string
           disease_name?: string
           id?: string
+          image_url?: string | null
           plant_type?: string
           preventive_measures?: string[]
           remedies?: string[]
+          scientific_name?: string | null
+          severity_level?: string | null
+          symptoms?: string[] | null
           updated_at?: string | null
         }
         Relationships: []
+      }
+      training_images: {
+        Row: {
+          created_at: string | null
+          disease_id: string | null
+          id: string
+          image_path: string
+          metadata: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          disease_id?: string | null
+          id?: string
+          image_path: string
+          metadata?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          disease_id?: string | null
+          id?: string
+          image_path?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_images_disease_id_fkey"
+            columns: ["disease_id"]
+            isOneToOne: false
+            referencedRelation: "plant_diseases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

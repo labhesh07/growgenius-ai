@@ -13,6 +13,8 @@ type DetectionHistoryItem = {
     disease_name: string;
     plant_type: string;
     confidence: number;
+    severity_level?: string;
+    image_url?: string;
   } | null;
 };
 
@@ -81,7 +83,9 @@ export function DiseaseDetectionProvider({ children }: { children: ReactNode }) 
             id,
             disease_name,
             plant_type,
-            confidence
+            confidence,
+            severity_level,
+            image_url
           )
         `)
         .eq('user_id', session.user.id)

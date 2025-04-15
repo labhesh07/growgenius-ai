@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useDiseaseDetection } from '@/context/DiseaseDetectionContext';
-import { Leaf, AlertTriangle, Info, Sprout, Wind, Droplet, Loader2 } from 'lucide-react';
+import { Leaf, AlertTriangle, Info, Sprout, Wind, Droplet, Loader2, FlaskConical, ThermometerSun } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -99,6 +99,42 @@ const DiseaseResult = () => {
     ? "border-emerald-200 dark:border-emerald-800"
     : "border-amber-200 dark:border-amber-800";
 
+  // Determine severity level badge class
+  const getSeverityBadge = () => {
+    if (!detectionResult.severity) return null;
+    
+    const severityMap: Record<string, { text: string, class: string }> = {
+      'low': { 
+        text: 'Low Severity', 
+        class: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
+      },
+      'moderate': { 
+        text: 'Moderate Severity', 
+        class: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' 
+      },
+      'high': { 
+        text: 'High Severity', 
+        class: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' 
+      },
+      'severe': { 
+        text: 'Severe', 
+        class: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' 
+      }
+    };
+    
+    const severity = detectionResult.severity.toLowerCase();
+    const badgeInfo = severityMap[severity] || { 
+      text: detectionResult.severity, 
+      class: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300' 
+    };
+    
+    return (
+      <Badge variant="outline" className={`${badgeInfo.class} font-medium`}>
+        {badgeInfo.text}
+      </Badge>
+    );
+  };
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -123,9 +159,14 @@ const DiseaseResult = () => {
                 )}
                 <div>
                   <CardTitle className="text-xl sm:text-2xl">{detectionResult.diseaseName}</CardTitle>
-                  {detectionResult.plantType && (
-                    <span className="text-sm text-muted-foreground">Plant type: {detectionResult.plantType}</span>
-                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {detectionResult.plantType && (
+                      <span className="text-sm text-muted-foreground">Plant type: {detectionResult.plantType}</span>
+                    )}
+                    {detectionResult.scientificName && (
+                      <span className="text-xs italic text-muted-foreground">({detectionResult.scientificName})</span>
+                    )}
+                  </div>
                 </div>
               </motion.div>
               
@@ -140,6 +181,9 @@ const DiseaseResult = () => {
                   >
                     {detectionResult.confidence}% confidence
                   </Badge>
+                  
+                  {!isHealthy && getSeverityBadge()}
+                  
                   {!isHealthy && (
                     <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800 font-medium">
                       Requires treatment
@@ -160,10 +204,30 @@ const DiseaseResult = () => {
                 <p className="text-sm md:text-base text-muted-foreground">{detectionResult.description}</p>
               </motion.div>
 
+              {detectionResult.symptoms && detectionResult.symptoms.length > 0 && (
+                <motion.div variants={childVariants}>
+                  <h3 className="font-medium mb-3 flex items-center text-lg">
+                    <ThermometerSun className="h-5 w-5 mr-2 text-forest-500 dark:text-forest-400" />
+                    Symptoms
+                  </h3>
+                  <ul className="list-disc pl-5 space-y-2 sm:columns-1 md:columns-2 gap-x-6">
+                    {detectionResult.symptoms.map((symptom, index) => (
+                      <motion.li 
+                        key={index} 
+                        variants={childVariants}
+                        className="text-sm md:text-base text-muted-foreground break-inside-avoid-column"
+                      >
+                        {symptom}
+                      </motion.li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
+
               {detectionResult.remedies.length > 0 && (
                 <motion.div variants={childVariants}>
                   <h3 className="font-medium mb-3 flex items-center text-lg">
-                    <Droplet className="h-5 w-5 mr-2 text-forest-500 dark:text-forest-400" />
+                    <FlaskConical className="h-5 w-5 mr-2 text-forest-500 dark:text-forest-400" />
                     Recommended Remedies
                   </h3>
                   <ul className="list-disc pl-5 space-y-2 sm:columns-1 md:columns-2 gap-x-6">
