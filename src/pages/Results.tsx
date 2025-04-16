@@ -11,9 +11,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const Results = () => {
-  const { recommendations, isLoading } = useRecommendation();
+  const { recommendations, isLoading, soilData } = useRecommendation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -27,12 +29,139 @@ const Results = () => {
     window.scrollTo(0, 0);
   }, [recommendations, isLoading, navigate]);
 
+  // Format crop name for display (replace underscores with spaces and capitalize)
+  const formatCropName = (name: string) => {
+    return name
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   const handleDownload = () => {
-    // This is just a placeholder - in a real app you'd generate a PDF
-    toast({
-      title: "Download started",
-      description: "Your recommendations are being prepared for download.",
-    });
+    if (!recommendations || recommendations.length === 0) {
+      toast({
+        title: "No data available",
+        description: "There are no recommendations to download.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      // Create a new PDF document
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(20);
+      doc.setTextColor(39, 119, 54); // Green color
+      doc.text('Your Crop Recommendations', 105, 20, { align: 'center' });
+      
+      // Add date
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      const today = new Date().toLocaleDateString();
+      doc.text(`Generated on: ${today}`, 105, 30, { align: 'center' });
+      
+      // Add soil data table
+      doc.setFontSize(14);
+      doc.setTextColor(39, 119, 54);
+      doc.text('Your Soil Data', 14, 45);
+      
+      const soilDataArray = [
+        ['Parameter', 'Value', 'Unit'],
+        ['Nitrogen', soilData.nitrogen.toString(), 'kg/ha'],
+        ['Phosphorus', soilData.phosphorus.toString(), 'kg/ha'],
+        ['Potassium', soilData.potassium.toString(), 'kg/ha'],
+        ['Temperature', soilData.temperature.toString(), '°C'],
+        ['Humidity', soilData.humidity.toString(), '%'],
+        ['pH', soilData.ph.toString(), ''],
+        ['Rainfall', soilData.rainfall.toString(), 'mm'],
+      ];
+      
+      autoTable(doc, {
+        startY: 50,
+        head: [soilDataArray[0]],
+        body: soilDataArray.slice(1),
+        theme: 'grid',
+        headStyles: { 
+          fillColor: [39, 119, 54],
+          textColor: 255 
+        },
+      });
+      
+      // Add primary recommendation
+      const topRecommendation = recommendations[0];
+      
+      doc.setFontSize(14);
+      doc.setTextColor(39, 119, 54);
+      doc.text('Top Recommendation', 14, doc.lastAutoTable.finalY + 20);
+      
+      doc.setFontSize(16);
+      doc.text(formatCropName(topRecommendation.crop), 14, doc.lastAutoTable.finalY + 30);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      const descriptionLines = doc.splitTextToSize(topRecommendation.description, 180);
+      doc.text(descriptionLines, 14, doc.lastAutoTable.finalY + 40);
+      
+      // Add suitability score
+      doc.setFontSize(12);
+      doc.setTextColor(39, 119, 54);
+      doc.text(`Suitability Score: ${Math.round(topRecommendation.suitabilityScore)}%`, 14, doc.lastAutoTable.finalY + 60);
+      
+      // Add fertilizers
+      doc.setFontSize(12);
+      doc.text('Recommended Fertilizers:', 14, doc.lastAutoTable.finalY + 70);
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      let fertilizerText = topRecommendation.fertilizers.join(', ');
+      const fertilizerLines = doc.splitTextToSize(fertilizerText, 180);
+      doc.text(fertilizerLines, 14, doc.lastAutoTable.finalY + 80);
+      
+      // Add table for alternative recommendations
+      doc.addPage();
+      doc.setFontSize(14);
+      doc.setTextColor(39, 119, 54);
+      doc.text('Alternative Recommendations', 14, 20);
+      
+      const alternativeData = recommendations.slice(1).map(rec => [
+        formatCropName(rec.crop),
+        `${Math.round(rec.suitabilityScore)}%`,
+        rec.fertilizers.slice(0, 2).join(', ')
+      ]);
+      
+      autoTable(doc, {
+        startY: 30,
+        head: [['Crop', 'Suitability', 'Recommended Fertilizers']],
+        body: alternativeData,
+        theme: 'grid',
+        headStyles: { 
+          fillColor: [39, 119, 54],
+          textColor: 255 
+        },
+      });
+      
+      // Add disclaimer
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text('This report is based on the soil data provided and should be used as a guideline.', 105, 280, { align: 'center' });
+      doc.text('Consult with an agricultural expert for specific advice for your farm.', 105, 285, { align: 'center' });
+      
+      // Save the PDF
+      doc.save('crop-recommendations.pdf');
+      
+      toast({
+        title: "Report downloaded",
+        description: "Your crop recommendations have been saved as a PDF.",
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Download failed",
+        description: "There was an error generating your report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleShare = () => {
