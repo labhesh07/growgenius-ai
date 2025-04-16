@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { observeElements } from '../utils/animations';
-import { Database, Brain, CloudRain, Sprout, Wheat, Flask, Award, Scales } from 'lucide-react';
+import { Database, Brain, CloudRain, Sprout, Wheat, Beaker, Scale } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const AboutSection = () => {
@@ -84,7 +84,7 @@ const AboutSection = () => {
             <div className="glass-card p-5 animate-enter" data-direction="left" style={{ '--index': 3 } as React.CSSProperties}>
               <div className="flex items-center mb-3 gap-3">
                 <div className="p-2 bg-primary/10 rounded-full">
-                  <Flask className="w-5 h-5 text-primary" />
+                  <Beaker className="w-5 h-5 text-primary" />
                 </div>
                 <h4 className="font-medium">Data-Driven Approach</h4>
               </div>
@@ -96,7 +96,7 @@ const AboutSection = () => {
             <div className="glass-card p-5 animate-enter" data-direction="left" style={{ '--index': 4 } as React.CSSProperties}>
               <div className="flex items-center mb-3 gap-3">
                 <div className="p-2 bg-primary/10 rounded-full">
-                  <Award className="w-5 h-5 text-primary" />
+                  <Database className="w-5 h-5 text-primary" />
                 </div>
                 <h4 className="font-medium">Proven Accuracy</h4>
               </div>
@@ -120,7 +120,7 @@ const AboutSection = () => {
             <div className="glass-card p-5 animate-enter" data-direction="left" style={{ '--index': 6 } as React.CSSProperties}>
               <div className="flex items-center mb-3 gap-3">
                 <div className="p-2 bg-primary/10 rounded-full">
-                  <Scales className="w-5 h-5 text-primary" />
+                  <Scale className="w-5 h-5 text-primary" />
                 </div>
                 <h4 className="font-medium">Sustainable Farming</h4>
               </div>

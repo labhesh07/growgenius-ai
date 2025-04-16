@@ -14,7 +14,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 const DiseaseDetection = () => {
   const isMobile = useIsMobile();
-  const { detectDisease, isLoading, imagePreview, fetchHistory, detectionHistory, isAnalyzing } = useDiseaseDetection();
+  const { detectDisease, isLoading, imagePreview, fetchHistory, history, isAnalyzing } = useDiseaseDetection();
 
   useEffect(() => {
     // Scroll to top on page load
@@ -84,7 +84,7 @@ const DiseaseDetection = () => {
               </Button>
             </Link>
             
-            {detectionHistory && detectionHistory.length > 0 && (
+            {history && history.length > 0 && (
               <Button 
                 variant="outline" 
                 size={isMobile ? "default" : "sm"}
