@@ -50,22 +50,26 @@ const Results = () => {
     try {
       // Create a new PDF document
       const doc = new jsPDF();
+      let yPos = 20;
       
       // Add title
       doc.setFontSize(20);
       doc.setTextColor(39, 119, 54); // Green color
-      doc.text('Your Crop Recommendations', 105, 20, { align: 'center' });
+      doc.text('Your Crop Recommendations', 105, yPos, { align: 'center' });
+      yPos += 10;
       
       // Add date
       doc.setFontSize(10);
       doc.setTextColor(100);
       const today = new Date().toLocaleDateString();
-      doc.text(`Generated on: ${today}`, 105, 30, { align: 'center' });
+      doc.text(`Generated on: ${today}`, 105, yPos, { align: 'center' });
+      yPos += 15;
       
       // Add soil data table
       doc.setFontSize(14);
       doc.setTextColor(39, 119, 54);
-      doc.text('Your Soil Data', 14, 45);
+      doc.text('Your Soil Data', 14, yPos);
+      yPos += 5;
       
       const soilDataArray = [
         ['Parameter', 'Value', 'Unit'],
@@ -78,8 +82,9 @@ const Results = () => {
         ['Rainfall', soilData.rainfall.toString(), 'mm'],
       ];
       
-      autoTable(doc, {
-        startY: 50,
+      // Track table end position
+      const tableEndY = autoTable(doc, {
+        startY: yPos,
         head: [soilDataArray[0]],
         body: soilDataArray.slice(1),
         theme: 'grid',
@@ -89,40 +94,52 @@ const Results = () => {
         },
       });
       
+      // Update position after table
+      yPos = tableEndY.finalY + 20;
+      
       // Add primary recommendation
       const topRecommendation = recommendations[0];
       
       doc.setFontSize(14);
       doc.setTextColor(39, 119, 54);
-      doc.text('Top Recommendation', 14, doc.lastAutoTable.finalY + 20);
+      doc.text('Top Recommendation', 14, yPos);
+      yPos += 10;
       
       doc.setFontSize(16);
-      doc.text(formatCropName(topRecommendation.crop), 14, doc.lastAutoTable.finalY + 30);
+      doc.text(formatCropName(topRecommendation.crop), 14, yPos);
+      yPos += 10;
       
       doc.setFontSize(10);
       doc.setTextColor(100);
       const descriptionLines = doc.splitTextToSize(topRecommendation.description, 180);
-      doc.text(descriptionLines, 14, doc.lastAutoTable.finalY + 40);
+      doc.text(descriptionLines, 14, yPos);
+      yPos += descriptionLines.length * 5 + 10;
       
       // Add suitability score
       doc.setFontSize(12);
       doc.setTextColor(39, 119, 54);
-      doc.text(`Suitability Score: ${Math.round(topRecommendation.suitabilityScore)}%`, 14, doc.lastAutoTable.finalY + 60);
+      doc.text(`Suitability Score: ${Math.round(topRecommendation.suitabilityScore)}%`, 14, yPos);
+      yPos += 10;
       
       // Add fertilizers
       doc.setFontSize(12);
-      doc.text('Recommended Fertilizers:', 14, doc.lastAutoTable.finalY + 70);
+      doc.text('Recommended Fertilizers:', 14, yPos);
+      yPos += 10;
+      
       doc.setFontSize(10);
       doc.setTextColor(100);
       let fertilizerText = topRecommendation.fertilizers.join(', ');
       const fertilizerLines = doc.splitTextToSize(fertilizerText, 180);
-      doc.text(fertilizerLines, 14, doc.lastAutoTable.finalY + 80);
+      doc.text(fertilizerLines, 14, yPos);
       
       // Add table for alternative recommendations
       doc.addPage();
+      yPos = 20;
+      
       doc.setFontSize(14);
       doc.setTextColor(39, 119, 54);
-      doc.text('Alternative Recommendations', 14, 20);
+      doc.text('Alternative Recommendations', 14, yPos);
+      yPos += 10;
       
       const alternativeData = recommendations.slice(1).map(rec => [
         formatCropName(rec.crop),
@@ -131,7 +148,7 @@ const Results = () => {
       ]);
       
       autoTable(doc, {
-        startY: 30,
+        startY: yPos,
         head: [['Crop', 'Suitability', 'Recommended Fertilizers']],
         body: alternativeData,
         theme: 'grid',
