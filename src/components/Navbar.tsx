@@ -4,6 +4,7 @@ import { Sprout, Menu, X, Sun, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -11,6 +12,7 @@ const Navbar = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return document.documentElement.classList.contains('dark');
   });
+  const isMobile = useIsMobile();
 
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
@@ -40,8 +42,42 @@ const Navbar = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const menuVariants = {
+    hidden: { opacity: 0, height: 0 },
+    visible: { 
+      opacity: 1, 
+      height: 'auto',
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut",
+        staggerChildren: 0.1,
+        delayChildren: 0.1
+      }
+    },
+    exit: {
+      opacity: 0,
+      height: 0,
+      transition: {
+        duration: 0.2,
+        ease: "easeInOut"
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: { duration: 0.3 }
+    }
+  };
+  
   return (
-    <nav 
+    <motion.nav 
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled 
           ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg shadow-md py-3'
@@ -64,13 +100,13 @@ const Navbar = () => {
           <Link to="/" className="text-foreground/80 hover:text-foreground transition-colors">
             Home
           </Link>
-          <a href="#about" className="text-foreground/80 hover:text-foreground transition-colors">
+          <a href="/#about" className="text-foreground/80 hover:text-foreground transition-colors">
             About
           </a>
           <Link to="/disease-detection" className="text-foreground/80 hover:text-foreground transition-colors">
             Disease Detection
           </Link>
-          <a href="#contact" className="text-foreground/80 hover:text-foreground transition-colors">
+          <a href="/#contact" className="text-foreground/80 hover:text-foreground transition-colors">
             Contact
           </a>
           <Button
@@ -99,7 +135,13 @@ const Navbar = () => {
             onClick={toggleMenu}
             className="rounded-full"
           >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            <motion.div
+              initial={false}
+              animate={{ rotate: isMenuOpen ? 90 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </motion.div>
           </Button>
         </div>
       </div>
@@ -108,45 +150,57 @@ const Navbar = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
+            variants={menuVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             className="md:hidden bg-white dark:bg-gray-900 shadow-lg"
           >
-            <div className="px-4 py-5 space-y-4">
-              <Link 
-                to="/" 
-                className="block text-foreground hover:text-primary transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <a 
-                href="#about" 
-                className="block text-foreground hover:text-primary transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                About
-              </a>
-              <Link 
-                to="/disease-detection" 
-                className="block text-foreground hover:text-primary transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Disease Detection
-              </Link>
-              <a 
-                href="#contact" 
-                className="block text-foreground hover:text-primary transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Contact
-              </a>
+            <div className="px-4 py-5 space-y-3">
+              <motion.div variants={itemVariants}>
+                <Link 
+                  to="/" 
+                  className="block text-foreground hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-primary/5"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Home
+                </Link>
+              </motion.div>
+              
+              <motion.div variants={itemVariants}>
+                <a 
+                  href="#about" 
+                  className="block text-foreground hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-primary/5"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  About
+                </a>
+              </motion.div>
+              
+              <motion.div variants={itemVariants}>
+                <Link 
+                  to="/disease-detection" 
+                  className="block text-foreground hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-primary/5"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Disease Detection
+                </Link>
+              </motion.div>
+              
+              <motion.div variants={itemVariants}>
+                <a 
+                  href="#contact" 
+                  className="block text-foreground hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-primary/5"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Contact
+                </a>
+              </motion.div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
+    </motion.nav>
   );
 };
 
