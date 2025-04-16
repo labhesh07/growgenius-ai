@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import ResultsCard from '@/components/ResultsCard';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Download, Share2 } from 'lucide-react';
+import { ArrowLeft, Download, Share2, Mail, Facebook, Twitter, Linkedin, Copy, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useRecommendation } from '@/context/RecommendationContext';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const Results = () => {
   const { recommendations, isLoading, soilData } = useRecommendation();
@@ -82,8 +83,7 @@ const Results = () => {
         ['Rainfall', soilData.rainfall.toString(), 'mm'],
       ];
       
-      // Type assertion for autoTable return value
-      const tableEndPos = autoTable(doc, {
+      const tableOutput = autoTable(doc, {
         startY: yPos,
         head: [soilDataArray[0]],
         body: soilDataArray.slice(1),
@@ -92,10 +92,10 @@ const Results = () => {
           fillColor: [39, 119, 54],
           textColor: 255 
         },
-      }) as unknown as { finalY: number };
+      });
       
-      // Update position after table
-      yPos = tableEndPos.finalY + 20;
+      // Update position after table - using proper access to finalY
+      yPos = (tableOutput as unknown as { finalY: number }).finalY + 20;
       
       // Add primary recommendation
       const topRecommendation = recommendations[0];
@@ -181,12 +181,61 @@ const Results = () => {
     }
   };
 
-  const handleShare = () => {
-    // This is just a placeholder - in a real app you'd implement sharing
-    toast({
-      title: "Share feature",
-      description: "Sharing functionality would be implemented here.",
-    });
+  // Function to copy the current URL to clipboard
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copied",
+        description: "Results URL copied to clipboard.",
+      });
+    } catch (err) {
+      toast({
+        title: "Copy failed",
+        description: "Could not copy URL. Please try manually copying from your address bar.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Share via email
+  const shareViaEmail = () => {
+    if (!recommendations) return;
+    
+    const subject = encodeURIComponent("Crop Recommendation Results");
+    const body = encodeURIComponent(
+      `Check out my crop recommendations:\n\n` +
+      `Top recommendation: ${formatCropName(recommendations[0].crop)}\n` +
+      `Suitability score: ${Math.round(recommendations[0].suitabilityScore)}%\n\n` +
+      `View the full results at: ${window.location.href}`
+    );
+    
+    window.open(`mailto:?subject=${subject}&body=${body}`);
+  };
+
+  // Share via social media
+  const shareViaSocial = (platform: string) => {
+    if (!recommendations) return;
+    
+    const text = encodeURIComponent(`Check out my crop recommendation: ${formatCropName(recommendations[0].crop)} with ${Math.round(recommendations[0].suitabilityScore)}% suitability.`);
+    const url = encodeURIComponent(window.location.href);
+    
+    let shareUrl = '';
+    switch (platform) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+        break;
+      default:
+        return;
+    }
+    
+    window.open(shareUrl, '_blank', 'width=600,height=500');
   };
 
   // Animation variants
@@ -232,16 +281,68 @@ const Results = () => {
                 </Button>
               </Link>
               
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size={isMobile ? "default" : "sm"}
-                  className="flex items-center gap-2 border-green-200 dark:border-green-800"
-                  onClick={handleShare}
-                >
-                  <Share2 className="w-4 h-4" />
-                  <span className="hidden sm:inline">Share</span>
-                </Button>
+              <div className="flex items-center gap-2 flex-wrap justify-end">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size={isMobile ? "default" : "sm"}
+                      className="flex items-center gap-2 border-green-200 dark:border-green-800"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      <span className="hidden sm:inline">Share</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-2" side="bottom" align="end">
+                    <div className="flex flex-col gap-2 min-w-[200px]">
+                      <Button
+                        variant="ghost" 
+                        size="sm" 
+                        className="justify-start" 
+                        onClick={copyToClipboard}
+                      >
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copy link
+                      </Button>
+                      <Button
+                        variant="ghost" 
+                        size="sm" 
+                        className="justify-start" 
+                        onClick={shareViaEmail}
+                      >
+                        <Mail className="mr-2 h-4 w-4" />
+                        Email
+                      </Button>
+                      <Button
+                        variant="ghost" 
+                        size="sm" 
+                        className="justify-start" 
+                        onClick={() => shareViaSocial('facebook')}
+                      >
+                        <Facebook className="mr-2 h-4 w-4" />
+                        Facebook
+                      </Button>
+                      <Button
+                        variant="ghost" 
+                        size="sm" 
+                        className="justify-start" 
+                        onClick={() => shareViaSocial('twitter')}
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        Twitter
+                      </Button>
+                      <Button
+                        variant="ghost" 
+                        size="sm" 
+                        className="justify-start" 
+                        onClick={() => shareViaSocial('linkedin')}
+                      >
+                        <Linkedin className="mr-2 h-4 w-4" />
+                        LinkedIn
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 
                 <Button 
                   variant="default" 
