@@ -82,8 +82,8 @@ const Results = () => {
         ['Rainfall', soilData.rainfall.toString(), 'mm'],
       ];
       
-      // Track table end position
-      const tableEndY = autoTable(doc, {
+      // Type assertion for autoTable return value
+      const tableEndPos = autoTable(doc, {
         startY: yPos,
         head: [soilDataArray[0]],
         body: soilDataArray.slice(1),
@@ -92,10 +92,10 @@ const Results = () => {
           fillColor: [39, 119, 54],
           textColor: 255 
         },
-      });
+      }) as unknown as { finalY: number };
       
       // Update position after table
-      yPos = tableEndY.finalY + 20;
+      yPos = tableEndPos.finalY + 20;
       
       // Add primary recommendation
       const topRecommendation = recommendations[0];
